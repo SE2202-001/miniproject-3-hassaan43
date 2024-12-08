@@ -161,10 +161,10 @@ document.getElementById('sort-button').addEventListener('click', () => {
     let sortedJobs = [];
 
     if (selectedOption == "postedTime") {
-        if (filteredJobs.length != 0) {
-            sortedJobs = [...filteredJobs].sort((a, b) => parseInt(a["Job No"]) - parseInt(b["Job No"]));
+        if (filteredJobs.length !== 0) {
+            sortedJobs = sortJobsByPostedTime([...filteredJobs]);
         } else {
-            sortedJobs = [...jobData].sort((a, b) => parseInt(a["Job No"]) - parseInt(b["Job No"]));
+            sortedJobs = sortJobsByPostedTime([...jobData]);
         }
     } else {
         if (filteredJobs.length != 0) {
@@ -188,6 +188,41 @@ document.getElementById('sort-button').addEventListener('click', () => {
 
     displayJobs(jobs);
 });
+
+// Convert the time to a normalized time
+function normalizePostedTime(postedTime) {
+    const regexMinutes = /(\d+) minute(s)? ago/;
+    const regexHours = /(\d+) hour(s)? ago/;
+    const regexDays = /(\d+) day(s)? ago/;
+
+    let normalizedTime = 0; 
+
+    // Check if the time is in minutes
+    if (regexMinutes.test(postedTime)) {
+        const match = postedTime.match(regexMinutes);
+        normalizedTime = parseInt(match[1]);
+    }
+    // Check if the time is in hours
+    else if (regexHours.test(postedTime)) {
+        const match = postedTime.match(regexHours);
+        normalizedTime = parseInt(match[1]) * 60;  
+    }
+    // Check if the time is in days
+    else if (regexDays.test(postedTime)) {
+        const match = postedTime.match(regexDays);
+        normalizedTime = parseInt(match[1]) * 1440;  
+    }
+
+    return normalizedTime;
+}
+
+function sortJobsByPostedTime(jobs) {
+    return jobs.sort((a, b) => {
+        const timeA = normalizePostedTime(a.postedTime);
+        const timeB = normalizePostedTime(b.postedTime);
+        return timeA - timeB; // Sort by the normalized time
+    });
+}
 
 // Check if a job was clicked
 document.getElementById('job-listings').addEventListener('click', (e) => {
